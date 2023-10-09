@@ -1,16 +1,18 @@
 {
-  "name": "test",
+  "name": "gomus-stats",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "Connect to gomus-replica (mariadb) instance and provide useful stats via https",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "Jan Bölsche <jan@lagomorph.de> (http://regular.codes/)",
-  "license": "ISC",
+  "license": "All rights reserved",
   "dependencies": {
     "mysql": "^2.18.1",
+    "mysql2": "^3.6.1",
     "pull-stream": "^3.7.0",
     "stream-to-pull-stream": "^1.7.3"
   }
