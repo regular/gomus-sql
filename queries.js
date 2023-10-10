@@ -1,14 +1,14 @@
 const snakeCase = require('just-snake-case')
 
-module.exports = function(connection) {
+module.exports = function(execute) {
 
   return {
     entries,
     bookings
   }
 
-  function entries(from, to) {
-    const barcodeable = 'BookingSeat' // 'TicketSale' // 'Booking'
+  function entries(from, to, barcodeable) {
+    //const barcodeable = 'BookingSeat' // 'TicketSale' // 'Booking'
 
     const conditions = [
       'bse.is_entry IS TRUE',
@@ -54,7 +54,7 @@ ${additional_joins.join('\n')}
 WHERE ${conditions.join('\nAND ')}
 ORDER BY bse.entry_at
   `
-    return connection.execute(sql, [from, to])
+    return execute(sql, [from, to])
   }
 
   function bookings(from, to) {
@@ -93,12 +93,7 @@ SELECT
   AND b.created_at < ?
   ORDER BY b.created_at
 `
-    return connection.execute(sql, [from, to])
+    return execute(sql, [from, to])
   }
 }
 
-// --
-
-function typeCast(field, next) {
-  return `[${field.type}] ${field.string()}`
-}
