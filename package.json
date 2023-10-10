@@ -11,6 +11,7 @@
   "author": "Jan Bölsche <jan@lagomorph.de> (http://regular.codes/)",
   "license": "All rights reserved",
   "dependencies": {
+    "just-snake-case": "^3.2.0",
     "mysql": "^2.18.1",
     "mysql2": "^3.6.1",
     "pull-stream": "^3.7.0",
