@@ -1,4 +1,7 @@
+//jshint esversion: 11
+//jshint -W033
 const snakeCase = require('just-snake-case')
+const pull = require('pull-stream')
 
 module.exports = function(execute) {
 
@@ -19,6 +22,7 @@ module.exports = function(execute) {
       `bc.barcodeable_type = '${barcodeable}'`,
     ]
     const additional_joins = []
+    const additional_fields = []
     if (barcodeable == 'Booking') {
       additional_joins.push(`
         INNER JOIN bookings_view bo
@@ -32,7 +36,11 @@ module.exports = function(execute) {
         LEFT JOIN bookings_view bo
           ON barcodeable.booking_id = bo.id
       `)
-
+    }
+    if (barcodeable == 'TicketSale') {
+      additional_fields.push('barcodeable.start_at AS ticket_start_at')
+      //additional_fields.push('barcodeable.entry_duration AS ticket_entry_duration')
+      additional_fields.push('barcodeable.end_at AS ticket_end_at')
     }
     const sql = `
 SELECT 
@@ -43,7 +51,17 @@ SELECT
   bc.barcodeable_id AS foreign_id,
  
   bo.id AS booking_id,
-  bo.start_time
+  bo.start_time AS booking_start_time,
+  bo.language_id AS booking_language_id,
+  
+  p.id AS product_id,
+  p.name AS product_name,
+  p.product_category_id,
+
+  ca.zip AS address_zip,
+  ca.country_id AS address_country_id
+
+  ${(additional_fields.length > 0 ? ',' : '') + additional_fields.join(',')}
 
 FROM barcode_scan_events_view bse
 INNER JOIN barcodes_view bc
@@ -51,10 +69,19 @@ INNER JOIN barcodes_view bc
 
 ${additional_joins.join('\n')}
 
+  LEFT JOIN products_view p ON
+    bo.product_id = p.id
+
+  LEFT JOIN customer_adresses_view ca ON
+    bo.customer_adress_id = ca.id
+
 WHERE ${conditions.join('\nAND ')}
 ORDER BY bse.entry_at
   `
-    return execute(sql, [from, to])
+    return pull(
+      execute(sql, [from, to]),
+      extract(['booking', 'product', 'address', 'ticket'])
+    )
   }
 
   function bookings(from, to) {
@@ -97,3 +124,25 @@ SELECT
   }
 }
 
+// util
+
+function extract(prefixes) {
+  return pull.through(x=> {
+    const subs = {}
+    for (const k in x) {
+      const v = x[k]
+      if (v == null) {
+        delete x[k]
+        continue
+      }
+      for (const pf of prefixes) {
+        if (k.startsWith(pf + '_')) {
+          const newKey = k.slice(pf.length + 1)
+          if (x[pf] == undefined) x[pf] = {}
+          x[pf][newKey] = v
+          delete x[k]
+        }
+      }
+    }
+  })
+}

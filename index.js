@@ -1,3 +1,5 @@
+//jshint esversion: 11
+//jshint -W033
 const fs = require('fs')
 const {join} = require('path')
 const mysql = require('mysql2')
@@ -8,6 +10,7 @@ const defer = require('pull-defer')
 const merge = require('pull-merge')
 
 const Queries = require('./queries')
+const Enums = require('./enums')
 
 const connectionOpts = Object.assign(require('../credentials.json'), {
   dateStrings: true,
@@ -21,10 +24,28 @@ const connectionOpts = Object.assign(require('../credentials.json'), {
 const pool = mysql.createPool(connectionOpts)
 
 const {bookings, entries} = Queries(execute)
+const {update} = Enums(execute)
 
 //const from = '2023-10-02 00:00:00'
-const from = '2020-10-02 00:00:00'
-const to   = '2023-10-03 00:00:00'
+const from = '2023-10-02 00:00:00'
+const to   = '2023-10-03 10:30:00'
+
+update( (err, enums)=>{
+  console.log(err, enums)
+  showEntries(from, to, err=>{
+    console.log('Pool end')
+    pool.end()
+  })
+})
+
+/*
+showEntries(from, to, err=>{
+  console.log('Pool end')
+  pool.end()
+})
+*/
+
+// -- util
 
 function showBookings() {
   pull(
@@ -38,19 +59,12 @@ function showBookings() {
 function showEntries(from, to, cb) {
   pull(
     merge(['Booking', 'BookingSeat', 'TicketSale'].map(bc_type=>entries(from, to, bc_type)), compareEntries),
-    pull.drain(({foreign_type, foreign_id, entry_at, people_count, position, booking_id, start_time}) => {
-      console.log(`${entry_at} ${people_count}x ${foreign_type}#${foreign_id} @${position ? Buffer.from(position, 'base64').toString():'n/a'} ${booking_id} ${start_time}`)
-    }, cb)
+    /*pull.drain(({foreign_type, foreign_id, entry_at, people_count, position, booking_id, start_time, product_name, address_country_id}) => {
+      console.log(`${entry_at} ${people_count}x ${foreign_type}#${foreign_id} @${position ? Buffer.from(position, 'base64').toString():'n/a'} ${booking_id} ${start_time} ${product_name} ${address_country_id}`)
+    }, cb)*/
+    pull.log(cb)
   )
 }
-
-showEntries(from, to, err=>{
-  console.log('Pool end')
-  pool.end()
-})
-
-
-// -- util
 
 function execute(sql, params) {
   const ret = defer.source()
