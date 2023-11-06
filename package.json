@@ -1,5 +1,5 @@
 {
-  "name": "gomus-stats",
+  "name": "gomus-sql",
   "private": true,
   "version": "1.0.0",
   "description": "Connect to gomus-replica (mariadb) instance and run queries",
