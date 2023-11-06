@@ -2,7 +2,7 @@
   "name": "gomus-stats",
   "private": true,
   "version": "1.0.0",
-  "description": "Connect to gomus-replica (mariadb) instance and provide useful stats via https",
+  "description": "Connect to gomus-replica (mariadb) instance and run queries",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,10 +12,10 @@
   "license": "All rights reserved",
   "dependencies": {
     "just-snake-case": "^3.2.0",
-    "mysql": "^2.18.1",
     "mysql2": "^3.6.1",
     "pull-defer": "^0.2.3",
     "pull-merge": "^1.0.4",
+    "pull-next": "^1.0.1",
     "pull-stream": "^3.7.0",
     "stream-to-pull-stream": "^1.7.3"
   }

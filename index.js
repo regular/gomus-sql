@@ -21,15 +21,46 @@ const connectionOpts = Object.assign(require('../credentials.json'), {
   }
 })
 
-const pool = mysql.createPool(connectionOpts)
+module.exports = function() {
+  const pool = mysql.createPool(connectionOpts)
 
-const {bookings, entries} = Queries(execute)
-const {update} = Enums(execute)
+  const {bookings, entries} = Queries(execute)
+  const enums = Enums(execute)
+
+  return {
+    getEnums: enums.get,
+    getEntries,
+    end: ()=>pool.end(),
+    formatEntry
+  }
+
+  function getEntries(from, to) {
+    return pull(
+      merge(['Booking', 'BookingSeat', 'TicketSale'].map(bc_type=>entries(from, to, bc_type)), compareEntries),
+    )
+  }
+
+  function execute(sql, params) {
+    const ret = defer.source()
+    pool.getConnection( (err, conn) => {
+      if (err) return ret.resolve(pull.error(err))
+
+      const stream = conn.execute(sql, params).stream({highWaterMark: 50})
+      stream.on('end', ()=>{
+        console.log('release conn')
+        pool.releaseConnection(conn)
+      })
+
+      ret.resolve( toPull.source(stream) )
+    })
+    return ret
+  }
+}
 
 //const from = '2023-10-02 00:00:00'
 const from = '2023-10-02 00:00:00'
 const to   = '2023-10-03 10:30:00'
-
+/*
 update( (err, enums)=>{
   console.log(err, enums)
   showEntries(from, to, err=>{
@@ -37,17 +68,11 @@ update( (err, enums)=>{
     pool.end()
   })
 })
-
-/*
-showEntries(from, to, err=>{
-  console.log('Pool end')
-  pool.end()
-})
 */
 
 // -- util
 
-function showBookings() {
+function showBookings(from, to) {
   pull(
     src(bookings(from, to)),
     pull.drain(({id, created_at, product_name}) => {
@@ -56,30 +81,20 @@ function showBookings() {
   )
 }
 
-function showEntries(from, to, cb) {
-  pull(
-    merge(['Booking', 'BookingSeat', 'TicketSale'].map(bc_type=>entries(from, to, bc_type)), compareEntries),
-    /*pull.drain(({foreign_type, foreign_id, entry_at, people_count, position, booking_id, start_time, product_name, address_country_id}) => {
-      console.log(`${entry_at} ${people_count}x ${foreign_type}#${foreign_id} @${position ? Buffer.from(position, 'base64').toString():'n/a'} ${booking_id} ${start_time} ${product_name} ${address_country_id}`)
-    }, cb)*/
-    pull.log(cb)
-  )
-}
-
-function execute(sql, params) {
-  const ret = defer.source()
-  pool.getConnection( (err, conn) => {
-    if (err) return ret.resolve(pull.error(err))
-
-    const stream = conn.execute(sql, params).stream({highWaterMark: 50})
-    stream.on('end', ()=>{
-      console.log('release conn')
-      pool.releaseConnection(conn)
-    })
-
-    ret.resolve( toPull.source(stream) )
-  })
-  return ret
+function formatEntry(e) {
+  const {
+    foreign_type,
+    foreign_id,
+    entry_at,
+    people_count,
+    position,
+    booking_id,
+    start_time,
+    product_name,
+    address_country_id
+  } = e
+  
+  return `${entry_at} ${people_count}x ${foreign_type}#${foreign_id} @${position ? Buffer.from(position, 'base64').toString():'n/a'} ${booking_id} ${start_time} ${product_name} ${address_country_id}`
 }
 
 function compareEntries(a, b) {

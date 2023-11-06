@@ -19,10 +19,10 @@ const enum_defs = {
 
 module.exports = function(execute) {
   return {
-    update
+    get
   }
 
-  function update(cb) {
+  function get(cb) {
     pull(
       pull.keys(enum_defs),
       pull.asyncMap( (type, cb)=>{
