@@ -3,6 +3,10 @@
 const pull = require('pull-stream')
 
 const enum_defs = {
+  'zones': {
+    table: 'relay_entry_zones_view',
+    fields: ['id', 'name']
+  },
   'language': {
     table: 'languages_view',
     fields: ['id', 'locale_code', 'name', 'name_intern'],
