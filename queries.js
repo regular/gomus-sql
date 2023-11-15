@@ -44,6 +44,7 @@ module.exports = function(execute) {
     }
     const sql = `
 SELECT 
+  barcode_id,
   entry_at,
   people_count,
   position,
