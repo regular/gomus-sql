@@ -47,7 +47,7 @@ module.exports = function() {
 
       const stream = conn.execute(sql, params).stream({highWaterMark: 50})
       stream.on('end', ()=>{
-        console.log('release conn')
+        //console.log('release conn')
         pool.releaseConnection(conn)
       })
 
