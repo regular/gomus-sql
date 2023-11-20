@@ -18,6 +18,10 @@ const enum_defs = {
   'product_category_type': {
     table: 'product_category_types_view',
     fields: ['id', 'booking_method', 'name', 'name_intern'],
+  },
+  'barcode_prefix': {
+    fields: ['prefix', 'klass'],
+    table: 'barcode_definitions_view'
   }
 }
 
