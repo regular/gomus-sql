@@ -14,8 +14,8 @@
     "just-snake-case": "^3.2.0",
     "mysql2": "^3.6.1",
     "pull-defer": "^0.2.3",
-    "pull-merge": "^1.0.4",
     "pull-next": "^1.0.1",
+    "pull-sorted-merge": "^1.0.5",
     "pull-stream": "^3.7.0",
     "stream-to-pull-stream": "^1.7.3"
   }

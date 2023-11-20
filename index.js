@@ -7,7 +7,7 @@ const mysql = require('mysql2')
 const pull = require('pull-stream')
 const toPull = require('stream-to-pull-stream')
 const defer = require('pull-defer')
-const merge = require('pull-merge')
+const merge = require('pull-sorted-merge')
 
 const Queries = require('./queries')
 const Enums = require('./enums')
@@ -30,8 +30,8 @@ module.exports = function() {
   return {
     getEnums: enums.get,
     getEntries,
+    formatEntry, // redundant for backwatd-comp
     end: ()=>pool.end(),
-    formatEntry
   }
 
   function getEntries(from, to) {
@@ -70,6 +70,8 @@ update( (err, enums)=>{
 })
 */
 
+module.exports.formatEntry = formatEntry
+
 // -- util
 
 function showBookings(from, to) {
@@ -90,18 +92,15 @@ function formatEntry(e) {
     position,
     booking_id,
     start_time,
-    product_name,
-    address_country_id
+    product_name
   } = e
   
-  return `${entry_at} ${people_count}x ${foreign_type}#${foreign_id} @${position ? Buffer.from(position, 'base64').toString():'n/a'} ${booking_id} ${start_time} ${product_name} ${address_country_id}`
+  return `${entry_at} ${people_count}x ${foreign_type}#${foreign_id} @${position ? Buffer.from(position, 'base64').toString():'n/a'} ${booking_id} ${start_time} ${product_name}`
 }
 
-function compareEntries(a, b) {
-  a = a.entry_at
-  b = b.entry_at
-  if (a>b) return 1
-  if (a<b) return -1
+function compareEntries(A, B) {
+  if (a.scan_id>b.scan_id) return 1
+  if (a.scan_id<b.scan_id) return -1
   return 0
 }
 
