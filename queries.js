@@ -25,13 +25,13 @@ module.exports = function(execute) {
     const additional_fields = []
     if (barcodeable == 'Booking') {
       additional_joins.push(`
-        INNER JOIN bookings_view bo
+        LEFT JOIN bookings_view bo
           ON bc.barcodeable_id = bo.id
       `)
     } else {
       const table = snakeCase(barcodeable) + 's_view'
       additional_joins.push(`
-        INNER JOIN ${table} barcodeable
+        LEFT JOIN ${table} barcodeable
           ON bc.barcodeable_id = barcodeable.id
         LEFT JOIN bookings_view bo
           ON barcodeable.booking_id = bo.id
@@ -44,6 +44,7 @@ module.exports = function(execute) {
     }
     const sql = `
 SELECT 
+  bse.id AS scan_id,
   barcode_id,
   entry_at,
   people_count,
@@ -65,7 +66,7 @@ SELECT
   ${(additional_fields.length > 0 ? ',' : '') + additional_fields.join(',')}
 
 FROM barcode_scan_events_view bse
-INNER JOIN barcodes_view bc
+LEFT JOIN barcodes_view bc
   ON bse.barcode_id = bc.id
 
 ${additional_joins.join('\n')}
@@ -77,7 +78,7 @@ ${additional_joins.join('\n')}
     bo.customer_adress_id = ca.id
 
 WHERE ${conditions.join('\nAND ')}
-ORDER BY bse.entry_at
+ORDER BY bse.id
   `
     return pull(
       execute(sql, [from, to]),
