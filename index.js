@@ -98,7 +98,7 @@ function formatEntry(e) {
   return `${entry_at} ${people_count}x ${foreign_type}#${foreign_id} @${position ? Buffer.from(position, 'base64').toString():'n/a'} ${booking_id} ${start_time} ${product_name}`
 }
 
-function compareEntries(A, B) {
+function compareEntries(a, b) {
   if (a.scan_id>b.scan_id) return 1
   if (a.scan_id<b.scan_id) return -1
   return 0
